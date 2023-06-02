@@ -6,23 +6,21 @@ import javax.swing.JPanel;
 
 public class Paper
 {    
-    static int nrOfPlayers = 1;
+    static int nrOfPlayers = 2; // 1 - 5 players allowed
     static int deathTime = 3;
     static int gameSpeed = 100;
     static boolean gameRunning = false;
-    static int tilesX = 25;
-    static int tilesY = 25;
-    static int tileSizeX = 15;
-    static int tileSizeY = 10;
+    static int tilesX = 60;
+    static int tilesY = 30;
+    static int tileSizeX = 12;
+    static int tileSizeY = 12;
     static int margX = 32;
     static int margY = 16;
     static int marginText = 170;
     static int width = margX * 2 + tileSizeX * tilesX + marginText;
     static int height = margY * 2 + margX * 2 + tileSizeY * tilesY;
-
-    static Point apple;
     
-    // Diferent directions
+    // Different directions
     static Point[] directions = { new Point (-1, 0), new Point (0, -1), new Point (1, 0), new Point (0, 1) };
 
     // Player 
@@ -32,9 +30,10 @@ public class Paper
     static Point[][] snake = new Point [nrOfPlayers][tilesX * tilesY];
     static int[] playerScore = new int [nrOfPlayers];
     static int[] playerTileCount = new int [nrOfPlayers];
-    static int[] playerResurectTimer = new int [nrOfPlayers];
+    static int[] playerResurrectTimer = new int [nrOfPlayers];
 
-    // Controll keys for the players
+    // Control keys for the players
+
     static int[][] key = { { KeyEvent.VK_LEFT, KeyEvent.VK_UP, KeyEvent.VK_RIGHT, KeyEvent.VK_DOWN },
                             { KeyEvent.VK_A, KeyEvent.VK_W, KeyEvent.VK_D, KeyEvent.VK_S },
                             { KeyEvent.VK_N, KeyEvent.VK_J, KeyEvent.VK_COMMA, KeyEvent.VK_M },
@@ -68,12 +67,7 @@ public class Paper
 
                     }
 
-                // Äpplet
-                g.setColor(new Color(220, 30, 30));
-                //g.fillOval (margX + apple.x * tileSizeX,
-                //            margY + apple.y * tileSizeY, tileSizeX - 1, tileSizeY - 1);
-
-                // Ormen
+                // Snakes
                 for (int p = 0; p < nrOfPlayers; p++) {
                     g.setColor(playerColors[p][2]);
                     for (int i = 0; i < snakeLength[p]; i++)
@@ -86,8 +80,8 @@ public class Paper
                     String playerText = "Player " + (p + 1) + ": " +
                                     (playerTileCount[p]  * 100 / (tilesX * tilesY)) +
                                     "% kills: "+ playerScore[p];
-                    if (playerResurectTimer[p] > 0) {
-                        playerText += " - " + playerResurectTimer[p] + " -";
+                    if (playerResurrectTimer[p] > 0) {
+                        playerText += " - " + playerResurrectTimer[p] + " -";
                     }
                     g.drawString(playerText ,width - marginText, margY + (g.getFontMetrics().getHeight() + 2) * p);
                 }
@@ -108,7 +102,7 @@ public class Paper
                 for (int p = 0; p < nrOfPlayers; p++) {
                     for (int i = 0; i < 4; i++) {
                         if (keyEvent.getKeyCode() == key[p][i]) {
-                            // Kolla så att du inte trycket åt motsatta håll när du är i "ormläge"
+                            // Kolla så att du inte trycket åt motsatta håll när du är i "snake mode"
                             if (snakeLength[p] > 1) {
                                 if (dir[p] == directions[(i+2)%4])
                                     continue;
@@ -130,10 +124,10 @@ public class Paper
             }
 
             for (int p = 0; p < nrOfPlayers; p ++) {
-                if (playerResurectTimer[p] > 0) {
-                    if (playerResurectTimer[p] == 1)
+                if (playerResurrectTimer[p] > 0) {
+                    if (playerResurrectTimer[p] == 1)
                         spawnPlayer (p);
-                    playerResurectTimer[p] --;
+                    playerResurrectTimer[p] --;
                     continue;
                 }
 
@@ -190,7 +184,7 @@ public class Paper
                             tiles[snake[p][i].x][snake[p][i].y] = playerColors[p][0];
                         }
                         fillArea (p, newHead);
-                        carculateProcent();
+                        calculateProcent();
                     }
                     snakeLength[p] = 1;
                 }
@@ -205,14 +199,8 @@ public class Paper
         Timer timer = new Timer(gameSpeed, timeActionL);
         timer.start();
     }
-    
-    private static void newRandomApple () {
-        apple = new Point ((int)(Math.random () * tilesX),
-                           (int)(Math.random () * tilesY));
 
-    }
-
-    private static void carculateProcent () {
+    private static void calculateProcent() {
         // Clear
         for (int p = 0; p < nrOfPlayers; p++) {
             playerTileCount[p] = 0;
@@ -233,7 +221,7 @@ public class Paper
     }
 
     private static void killPlayer (int q) {
-        playerResurectTimer[q] = deathTime * 1000 / gameSpeed;
+        playerResurrectTimer[q] = deathTime * 1000 / gameSpeed;
         snakeLength[q] = 1;
     }
 
@@ -247,7 +235,7 @@ public class Paper
         for (int p = 0; p < nrOfPlayers; p ++) {
             spawnPlayer(p);
         }
-        carculateProcent ();
+        calculateProcent();
         gameRunning = true;
     }
 
@@ -303,7 +291,7 @@ public class Paper
         return ret;
     }
     private static void fillArea (int p, Point newHead) {      
-        // Try to fill differentfrom diferent points          
+        // Try to fill different from different points
         for (int j = 0; j < 4; j ++) {
             //tiles[snake[p][i].x + directions[j].x] [ snake[p][i].y + directions[j].x] = new Color (0, 0, 100);
             tryFill (p, newHead.x + directions[j].x, newHead.y + directions[j].x);      
@@ -343,9 +331,7 @@ public class Paper
         if (tilesMap[x][y] == playerColors[p][0] )
             return true;
         tilesMap[x][y] = playerColors[p][0];
-        //if (fill)    
-        //    tilesMap[x][y] = playerColors[p][0];
-        
+
         if (!recursiveSearch (tilesMap, p, x + 1, y)) return false;
         if (!recursiveSearch (tilesMap, p, x - 1, y)) return false;
         if (!recursiveSearch (tilesMap, p, x, y + 1)) return false;
